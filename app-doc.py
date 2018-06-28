@@ -14,7 +14,7 @@ token = ''
 cookies = ''
 
 def get_auth(host, port, user, password, account):
-    url = 'https://{}:{}/controller/auth'.format(host, port)
+    url = '{}:{}/controller/auth'.format(host, port)
     headers = {
         'Authorization': 'Basic ' + base64.b64encode(user + "@" + account + ":" + password)  
     }
@@ -30,13 +30,15 @@ def get_auth(host, port, user, password, account):
     return 0
 
 def get_applications(host, port, user, password, account):
-    url = 'https://{}:{}/controller/rest/applications'.format(host, port)
+    url = '{}:{}/controller/rest/applications'.format(host, port)
     auth = ('{}@{}'.format(user, account), password)
-    #print(auth)
     params = {'output': 'json'}
 
-    #print('Getting apps', url)
+    print('Getting apps', url)
     r = requests.get(url, auth=auth, params=params)
+    if r.status_code != 200:
+        print('Erro de conexao, return code=', r.status_code)
+        sys.exit(2)
     return sorted(r.json(), key=lambda k: k['name'])
 
 def find_dashboard(dashboards, name):
@@ -50,7 +52,7 @@ def find_dashboard(dashboards, name):
 def transaction_auto(worksheet, bold, i, id, name):
     #Transaction
     #https://buscapecompany.saas.appdynamics.com/controller/transactiondetection/5307/auto
-    url = 'https://{}:{}/controller/transactiondetection/{}/auto'.format(host, port, id)
+    url = '{}:{}/controller/transactiondetection/{}/auto'.format(host, port, id)
     auth = ('{}@{}'.format(user, account), password)
     #print('Getting apps', url)
     r = requests.get(url, auth=auth)
@@ -65,26 +67,31 @@ def transaction_auto(worksheet, bold, i, id, name):
                     valor = valor.replace('</tx-match-rule>', '')
                     valor = json.loads(valor)
                     for discovery in valor['txautodiscoveryrule']['autodiscoveryconfigs']:
-                        if discovery['namingschemetype'] == 'URI':
-                            if discovery['httpautodiscovery']['parturisegments']['numsegments'] != 2:
-                                #print('numsegments diferent')
-                                worksheet.write( i ,0, name)  
-                                worksheet.write( i ,1, name_rule)
-                                worksheet.write( i ,8, 'nro segmentos')
-                                worksheet.write( i ,9, discovery['httpautodiscovery']['parturisegments']['numsegments'])
-
-                            if discovery['httpautodiscovery']['parturisegments']['type'] != 'FIRST':
-                                #print('type diferente')
-                                worksheet.write( i ,0, name)
-                                worksheet.write( i ,1, name_rule)
-                                worksheet.write( i ,6, 'Use the')
-                                worksheet.write( i ,7, discovery['httpautodiscovery']['parturisegments']['type'])
+                        if discovery['txentrypointtype']  != 'WEB':
+                            if discovery['namingschemetype'] == 'URI':
+                                if discovery['httpautodiscovery']['parturisegments']['numsegments'] > 2:
+                                    #print('numsegments diferent')
+                                    worksheet.write( i ,0, name)  
+                                    worksheet.write( i ,1, name_rule)
+                                    worksheet.write( i ,8, 'nro segmentos')
+                                    worksheet.write( i ,9, discovery['httpautodiscovery']['parturisegments']['numsegments'])
+                                # else:
+                                #     worksheet.write( i ,0, name)  
+                                #     worksheet.write( i ,1, name_rule)
+                                #     worksheet.write( i ,8, 'nro segmentos')
+                                #     worksheet.write( i ,9, "2")
+                                if discovery['httpautodiscovery']['parturisegments']['type'] != 'FIRST':
+                                    #print('type diferente')
+                                    worksheet.write( i ,0, name)
+                                    worksheet.write( i ,1, name_rule)
+                                    worksheet.write( i ,6, 'Use the')
+                                    worksheet.write( i ,7, discovery['httpautodiscovery']['parturisegments']['type'])
     return i
 
 def transaction_custom(worksheet, bold, i, id, name):
     #https://buscapecompany.saas.appdynamics.com/controller/transactiondetection/5307/custom
         #priority="1"  
-    url = 'https://{}:{}/controller/transactiondetection/{}/custom'.format(host, port, id)
+    url = '{}:{}/controller/transactiondetection/{}/custom'.format(host, port, id)
     auth = ('{}@{}'.format(user, account), password)
     #print('Getting apps', url)
     r = requests.get(url, auth=auth)
@@ -108,18 +115,51 @@ def transaction_custom(worksheet, bold, i, id, name):
                             worksheet.write( i ,2, rules.attrib['priority'])
                             # Write some simple text.
                             worksheet.write( i ,3, tipo)
-                            if entry_point == 'SERVLET':
-                                worksheet.write( i ,4, discovery['httpmatch']['uri']['type'])
-                                worksheet.write( i ,5, discovery['httpmatch']['uri']['matchstrings'][0])
+                            #print(discovery)
+                            #print(entry_point)
+                            if entry_point == 'SERVLET' or entry_point == 'WEB' or entry_point == 'NODEJS_WEB':
+                                try:
+                                    worksheet.write( i ,4, discovery['httpmatch']['uri']['type'])
+                                    worksheet.write( i ,5, discovery['httpmatch']['uri']['matchstrings'][0])
+                                    try:
+                                         worksheet.write( i ,6, discovery['httpmatch']['classmatch']['type'])
+                                         worksheet.write( i ,8, discovery['httpmatch']['classmatch']['classnamecondition']['matchstrings'][0])
+                                         worksheet.write( i ,7, discovery['httpmatch']['classmatch']['classnamecondition']['type'])
+                                    except Exception as e:
+                                        print("")
+                                except:
+                                    try:
+                                        worksheet.write( i ,6, discovery['httpmatch']['classmatch']['type'])
+                                        worksheet.write( i ,8, discovery['httpmatch']['classmatch']['classnamecondition']['matchstrings'][0])
+                                        worksheet.write( i ,7, discovery['httpmatch']['classmatch']['classnamecondition']['type'])
+                                    except:
+                                        worksheet.write( i ,4, "headers")
+                                        worksheet.write( i ,6, discovery['httpmatch']['headers'][0]['comparisontype'])
+                                        worksheet.write( i ,8, discovery['httpmatch']['headers'][0]['value']['matchstrings'][0])
+                                        worksheet.write( i ,7, discovery['httpmatch']['headers'][0]['value']['type'])
+                            
                             if entry_point == 'WEB_SERVICE':
                                 worksheet.write( i ,4, discovery['genericmatchcondition']['stringmatchcondition']['type'])
                                 worksheet.write( i ,5, discovery['genericmatchcondition']['stringmatchcondition']['matchstrings'][0])
+                            if entry_point == 'POCO':
+                                worksheet.write( i ,4, discovery['instrumentionprobe']['javadefinition']['classmatch']['type'])
+                                worksheet.write( i ,6, discovery['instrumentionprobe']['javadefinition']['classmatch']['classnamecondition']['matchstrings'][0])
+                                worksheet.write( i ,7, discovery['instrumentionprobe']['javadefinition']['methodmatch']['methodnamecondition']['matchstrings'][0])
+                            if entry_point == 'ASP_DOTNET':
+                                worksheet.write( i ,4, discovery['httpmatch']['uri']['type'])
+                                worksheet.write( i ,5, discovery['httpmatch']['uri']['matchstrings'][0])
+                        try: 
+                            if valor['txcustomrule']['actions'][0] != '':
+                                worksheet.write( i ,8, valor['txcustomrule']['actions'][0]['pojosplit']['advancedsplitconfig'][0]['splitoperation'])
+                                worksheet.write( i ,9, valor['txcustomrule']['actions'][0]['pojosplit']['excludes']['matchstrings'][0])
+                        except:
+                            pass
     return i
 
 def health_rules(worksheet, bold, x, id, name):
     #Health Rules
     #https://buscapecompany.saas.appdynamics.com/controller/healthrules/530
-    url = 'https://{}:{}/controller/healthrules/{}'.format(host, port, id)
+    url = '{}:{}/controller/healthrules/{}'.format(host, port, id)
     auth = ('{}@{}'.format(user, account), password)
     #print('Getting apps', url)
     r = requests.get(url, auth=auth)
@@ -137,6 +177,7 @@ def health_rules(worksheet, bold, x, id, name):
                 if y != 0: 
                     i = i + 1
                 y = 0
+            print(health)
             if rules.tag == 'duration-min' and rules.text != '30':
                 worksheet.write( i ,0, name) 
                 worksheet.write( i ,1, health)  
@@ -178,7 +219,7 @@ def process():
     global workbook 
     workbook = xlsxwriter.Workbook('{}.xlsx'.format(account))
     worksheet = workbook.add_worksheet('Transaction Discovery')
-    worksheet2 = workbook.add_worksheet('Health Rules')
+    #worksheet2 = workbook.add_worksheet('Health Rules')
     bold = workbook.add_format({'bold': True})
     i = 0
     worksheet.write( i , 0, 'Aplicacao', bold) 
@@ -186,28 +227,33 @@ def process():
     worksheet.write( i , 2, 'Prioridade', bold)
     worksheet.write( i , 3, 'Tipo', bold) 
     worksheet.write( i , 4, 'Operador', bold)
-    worksheet.write( i , 5, 'Valor', bold)
+    worksheet.write( i , 6, 'Classe', bold)
+    worksheet.write( i , 7, 'Metodo', bold)
+    worksheet.write( i , 8, 'Propriedade', bold)
+    worksheet.write( i , 9, 'Label', bold)
+
     i = i + 1
-    x = 0
-    worksheet2.write( x , 0, 'Aplicacao', bold) 
-    worksheet2.write( x , 1, 'Nome', bold)
-    worksheet2.write( x , 2, 'duration-min', bold)
-    worksheet2.write( x , 3, 'wait-time-min', bold) 
-    worksheet2.write( x , 4, 'warning', bold)
-    worksheet2.write( x , 5, 'critical', bold)
-    x = x + 1
+    # x = 0
+    # worksheet2.write( x , 0, 'Aplicacao', bold) 
+    # worksheet2.write( x , 1, 'Nome', bold)
+    # worksheet2.write( x , 2, 'duration-min', bold)
+    # worksheet2.write( x , 3, 'wait-time-min', bold) 
+    # worksheet2.write( x , 4, 'warning', bold)
+    # worksheet2.write( x , 5, 'critical', bold)
+    # x = x + 1
 
     for application in APPS:
         id = application['id']
         name = application['name']
         print(name)
-        # Add a bold format to use to highlight cells.
         
+        # Add a bold format to use to highlight cells.
+        # if name == 'Click':
         i = transaction_auto(worksheet, bold, i, id, name)
         i = transaction_custom(worksheet, bold, i, id, name)
         i = i + 1
-        health_rules(worksheet2, bold, x, id, name)
-        x = x + 1
+        #health_rules(worksheet2, bold, x, id, name)
+        # x = x + 1
 
     workbook.close()
 
@@ -219,18 +265,18 @@ def main():
     global password
     global account
 
-    #try:
-    host = sys.argv[1] 
-    port = sys.argv[2]
-    user = sys.argv[3]
-    password = sys.argv[4]
-    account = sys.argv[5]
+    if len(sys.argv) > 4:
+        host = sys.argv[1] 
+        port = sys.argv[2]
+        user = sys.argv[3]
+        password = sys.argv[4]
+        account = sys.argv[5]
 
-    process()
+        process()
 
-    #except:
-    #    print 'dashboard.py <host> <port> <user> <password> <account> <importacao>'
-    #    sys.exit(2)
+    else:
+       print 'app-doc.py <http(s)://host> <port> <user> <password> <account>'
+       sys.exit(2)
 
 if __name__ == '__main__':
     main()
