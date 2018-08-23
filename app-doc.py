@@ -247,7 +247,16 @@ def health_rules(worksheet, bold, x, id, name):
                                 worksheet.write( i ,2, tipo)
                                 # worksheet.write( i ,3, tipo2)
                                 worksheet.write( i ,8, business_transaction.text)  
-        
+                        if affected_bt_match_criteria.tag == 'node-match-criteria':
+                            for node_match_criteria in affected_bt_match_criteria:
+                                worksheet.write( i ,0, name) 
+                                worksheet.write( i ,1, health)  
+                                worksheet.write( i ,2, tipo)
+                                # # worksheet.write( i ,3, tipo2)
+                                #worksheet.write( i ,8, node_match_criteria.type)  
+                                worksheet.write( i ,8, "Node")  
+
+
             #if health == 'Memory utilization is too high' or health == 'JVM Heap utilization is too high':
             if health_rule.tag == 'warning-execution-criteria':
                 for warning_execution_criteria in health_rule:
@@ -350,7 +359,7 @@ def health_rules(worksheet, bold, x, id, name):
                             
                                 
 
-    return
+    return i
 
 def process():
     get_auth(host, port, user, password, account)
@@ -406,14 +415,14 @@ def process():
         id = application['id']
         name = application['name']
         print(name)
-        
+        # if name == "PLAT-RM-T51958-RFRANCO-PROD":
         # Add a bold format to use to highlight cells.
 
         i = transaction_auto(worksheet, bold, i, id, name)
         i = transaction_custom(worksheet, bold, i, id, name)
-        i = i + 1
-        health_rules(worksheet2, bold, x, id, name)
-        x = x + 1
+        # i = i + 1
+        x = health_rules(worksheet2, bold, x, id, name)
+        # x = x + 1
 
     workbook.close()
 
