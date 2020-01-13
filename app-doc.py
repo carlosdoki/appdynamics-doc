@@ -117,7 +117,7 @@ def transaction_custom(worksheet, bold, i, id, name):
                             # Write some simple text.
                             worksheet.write( i ,3, tipo)
                             #print(discovery)
-                            #print(entry_point)
+                            print(entry_point)
                             if entry_point == 'SERVLET' or entry_point == 'WEB' or entry_point == 'NODEJS_WEB':
                                 try:
                                     try:
@@ -126,6 +126,10 @@ def transaction_custom(worksheet, bold, i, id, name):
                                         print("")
                                     worksheet.write( i ,4, discovery['httpmatch']['uri']['type'])
                                     worksheet.write( i ,5, discovery['httpmatch']['uri']['matchstrings'][0])
+                                    try:
+                                        worksheet.write( i ,6, discovery['httpmatch']['parameters'][0]['value']['matchstrings'][0])
+                                    except Exception as e:
+                                        print("")
                                     try:
                                          worksheet.write( i ,6, discovery['httpmatch']['classmatch']['type'])
                                          worksheet.write( i ,8, discovery['httpmatch']['classmatch']['classnamecondition']['matchstrings'][0])
@@ -146,8 +150,9 @@ def transaction_custom(worksheet, bold, i, id, name):
                             if entry_point == 'WEB_SERVICE':
                                 worksheet.write( i ,4, discovery['genericmatchcondition']['stringmatchcondition']['type'])
                                 worksheet.write( i ,5, discovery['genericmatchcondition']['stringmatchcondition']['matchstrings'][0])
-                            if entry_point == 'POCO':
-                                worksheet.write( i ,5, "POCO")
+                            if entry_point == 'POCO' or entry_point == 'POJO':
+                                print(discovery)
+                                worksheet.write( i ,5, "POJO")
                                 worksheet.write( i ,4, discovery['instrumentionprobe']['javadefinition']['classmatch']['type'])
                                 worksheet.write( i ,6, discovery['instrumentionprobe']['javadefinition']['classmatch']['classnamecondition']['matchstrings'][0])
                                 try:
@@ -192,7 +197,7 @@ def health_rules(worksheet, bold, x, id, name):
     auth = ('{}@{}'.format(user, account), password)
     #print('Getting apps', url)
     r = requests.get(url, auth=auth)
-    print(r.text)
+    #print(r.text)
     root = xml.etree.ElementTree.fromstring(r.content)
     y = 0
     i = x
@@ -208,9 +213,9 @@ def health_rules(worksheet, bold, x, id, name):
             #     health_ant = health
             #     if y != 0: 
             #     y = 0
-            print("*************")
-            print(health)
-            print(health_rule.tag)
+            # print("*************")
+            #print(health)
+            #print(health_rule.tag)
 
             if health_rule.tag == 'type':
                 tipo = health_rule.text
