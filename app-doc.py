@@ -106,6 +106,7 @@ def transaction_custom(worksheet, bold, i, id, name):
                         valor = xml.etree.ElementTree.tostring(rule).replace('<tx-match-rule>', '')
                         valor = valor.replace('</tx-match-rule>', '')
                         valor = json.loads(valor)
+                        #print(valor)
                         tipo = valor['txcustomrule']['type']
                         entry_point = valor['txcustomrule']['txentrypointtype']
                         i = i + 1
