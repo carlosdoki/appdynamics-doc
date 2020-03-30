@@ -198,16 +198,18 @@ def health_rules(worksheet, bold, x, id, name):
     auth = ('{}@{}'.format(user, account), password)
     #print('Getting apps', url)
     r = requests.get(url, auth=auth)
-    #print(r.text)
+    # print(r.text)
     root = xml.etree.ElementTree.fromstring(r.content)
     y = 0
     i = x
     health = ''
     health_ant = ''
+    custom = 0
 
     for ahealth_rules in root:
         i += 1
         for health_rule in ahealth_rules:
+            custom = 0
             if health_rule.tag == 'name':
                 health = health_rule.text
             # if health != health_ant:
@@ -265,7 +267,15 @@ def health_rules(worksheet, bold, x, id, name):
 
             #if health == 'Memory utilization is too high' or health == 'JVM Heap utilization is too high':
             if health_rule.tag == 'warning-execution-criteria':
+                i = y
                 for warning_execution_criteria in health_rule:
+                    if warning_execution_criteria.tag == 'condition-aggregation-type':
+                        if warning_execution_criteria.text == 'CUSTOM':
+                            worksheet.write( i ,6, warning_execution_criteria.text)
+                            custom = 1    
+                    if warning_execution_criteria.tag == 'condition-expression':
+                        worksheet.write( i ,12, warning_execution_criteria.text)
+                        i += 1
                     if warning_execution_criteria.tag == 'policy-condition':
                         for policy_condition in warning_execution_criteria:
                             worksheet.write( i ,0, name) 
@@ -281,40 +291,32 @@ def health_rules(worksheet, bold, x, id, name):
                                 worksheet.write( i ,12, policy_condition.text)
                             if policy_condition.tag == 'use-active-baseline':
                                 worksheet.write( i ,15, policy_condition.text)
-                            if policy_condition.tag == 'condition1':
+                            if ('condition' in policy_condition.tag and len(policy_condition.tag) < 11):
                                 for condition1 in policy_condition:
-                                    if condition1.tag == 'display-name':
-                                        worksheet.write( i ,6, condition1.text)
-                                    if condition1.tag == 'condition-value-type':
-                                        worksheet.write( i ,14, condition1.text)
-                                    if condition1.tag == 'condition-value':
-                                        worksheet.write( i ,13, condition1.text)
-                                    if condition1.tag == 'operator':
-                                        worksheet.write( i ,12, condition1.text)
-                                    if condition1.tag == 'use-active-baseline':
-                                        worksheet.write( i ,15, condition1.text)
-                                    if condition1.tag == 'metric-expression':
-                                        for metric_expression in condition1:
-                                            # if metric_expression.tag == 'function-type':
-                                            #     worksheet.write( i ,11, metric_expression.text) 
-                                            if metric_expression.tag == 'metric-definition':
-                                                for metric_definition in metric_expression:
-                                                    # if metric_definition.tag == 'type':
-                                                    #     worksheet.write( i ,12, metric_definition.text) 
-                                                    if metric_definition.tag == 'logical-metric-name':
-                                                        worksheet.write( i ,16, metric_definition.text) 
-                            if policy_condition.tag == 'metric-expression':
-                                for metric_expression in policy_condition:
-                                    # if metric_expression.tag == 'function-type':
-                                    #     worksheet.write( i ,11, metric_expression.text) 
-                                    if metric_expression.tag == 'metric-definition':
-                                        for metric_definition in metric_expression:
-                                            # if metric_definition.tag == 'type':
-                                            #     worksheet.write( i ,12, metric_definition.text) 
-                                            if metric_definition.tag == 'logical-metric-name':
-                                                worksheet.write( i ,16, metric_definition.text) 
+                                    if custom == 1:
+                                        if ('condition' in condition1.tag and len(condition1.tag) < 11):
+                                            for conditions in condition1:
+                                                if ('condition' in conditions.tag and len(conditions.tag) < 11):
+                                                    for condition in conditions:
+                                                        i = hrConditions(worksheet, i, condition, 5)
+                                                    i += 1
+                                                else:    
+                                                    i = hrConditions(worksheet, i, conditions, 5)
+                                            i += 1
+                                        else:
+                                            i = hrConditions(worksheet, i, condition1, 5)
+                                    else:
+                                        i = hrConditions(worksheet, i, condition1, 5)
             if health_rule.tag == 'critical-execution-criteria':
+                y = i 
                 for critical_execution_criteria in health_rule:
+                    if critical_execution_criteria.tag == 'condition-aggregation-type':
+                        if critical_execution_criteria.text == 'CUSTOM':
+                            worksheet.write( i ,6, critical_execution_criteria.text)
+                            custom = 1    
+                    if critical_execution_criteria.tag == 'condition-expression':
+                        worksheet.write( i ,7, critical_execution_criteria.text)
+                        i += 1
                     if critical_execution_criteria.tag == 'policy-condition':
                         for policy_condition in critical_execution_criteria:
                             worksheet.write( i ,0, name) 
@@ -330,41 +332,48 @@ def health_rules(worksheet, bold, x, id, name):
                                 worksheet.write( i ,7, policy_condition.text)
                             if policy_condition.tag == 'use-active-baseline':
                                 worksheet.write( i ,10, policy_condition.text)
-                            if policy_condition.tag == 'condition1':
+                            if ('condition' in policy_condition.tag and len(policy_condition.tag) < 11):
                                 for condition1 in policy_condition:
-                                    if condition1.tag == 'display-name':
-                                        worksheet.write( i ,6, condition1.text)
-                                    if condition1.tag == 'condition-value-type':
-                                        worksheet.write( i ,9, condition1.text)
-                                    if condition1.tag == 'condition-value':
-                                        worksheet.write( i ,8, condition1.text)
-                                    if condition1.tag == 'operator':
-                                        worksheet.write( i ,7, condition1.text)
-                                    if condition1.tag == 'use-active-baseline':
-                                        worksheet.write( i ,10, condition1.text)
-                                    if condition1.tag == 'metric-expression':
-                                        for metric_expression in condition1:
-                                            # if metric_expression.tag == 'function-type':
-                                            #     worksheet.write( i ,11, metric_expression.text) 
-                                            if metric_expression.tag == 'metric-definition':
-                                                for metric_definition in metric_expression:
-                                                    # if metric_definition.tag == 'type':
-                                                    #     worksheet.write( i ,12, metric_definition.text) 
-                                                    if metric_definition.tag == 'logical-metric-name':
-                                                        worksheet.write( i ,11, metric_definition.text) 
-                            if policy_condition.tag == 'metric-expression':
-                                for metric_expression in policy_condition:
-                                    # if metric_expression.tag == 'function-type':
-                                    #     worksheet.write( i ,11, metric_expression.text) 
-                                    if metric_expression.tag == 'metric-definition':
-                                        for metric_definition in metric_expression:
-                                            # if metric_definition.tag == 'type':
-                                            #     worksheet.write( i ,12, metric_definition.text) 
-                                            if metric_definition.tag == 'logical-metric-name':
-                                                worksheet.write( i ,11, metric_definition.text) 
-                            
-                                
+                                    if custom == 1:
+                                        if ('condition' in condition1.tag and len(condition1.tag) < 11):
+                                            for conditions in condition1:
+                                                if ('condition' in conditions.tag and len(conditions.tag) < 11):
+                                                    for condition in conditions:
+                                                        i = hrConditions(worksheet, i, condition, 0)
+                                                    i += 1
+                                                else:    
+                                                    i = hrConditions(worksheet, i, conditions, 0)
+                                            i += 1
+                                        else:
+                                            i = hrConditions(worksheet, i, condition1, 0)
+                                    else:
+                                        i = hrConditions(worksheet, i, condition1, 0)
+    return i
 
+def hrConditions(worksheet, i, conditions, y):
+    if conditions.tag == 'short-name':
+        worksheet.write( i ,y + 4, conditions.text)
+    if conditions.tag == 'display-name':
+        worksheet.write( i ,y + 6, conditions.text)
+    if conditions.tag == 'condition-value-type':
+        worksheet.write( i ,y + 9, conditions.text) #14
+    if conditions.tag == 'condition-value':
+        worksheet.write( i ,y + 8, conditions.text) #13
+    if conditions.tag == 'operator':
+        worksheet.write( i ,y + 7, conditions.text) #12
+    if conditions.tag == 'use-active-baseline':
+        worksheet.write( i ,y + 10, conditions.text) #15
+    if conditions.tag == 'metric-expression':
+        for metric_expression in conditions:
+            # if metric_expression.tag == 'function-type':
+            #     worksheet.write( i ,y + 11, metric_expression.text) 
+            if metric_expression.tag == 'metric-definition':
+                for metric_definition in metric_expression:
+                    # if metric_definition.tag == 'type':
+                    #     worksheet.write( i ,y + 12, metric_definition.text) 
+                    if metric_definition.tag == 'logical-metric-name':
+                        worksheet.write( i ,y + 11, metric_definition.text) #16
+    # i += 1
     return i
 
 def process():
@@ -421,7 +430,6 @@ def process():
         id = application['id']
         name = application['name']
         print(name)
-        # if name == "PLAT-RM-T51958-RFRANCO-PROD":
         # Add a bold format to use to highlight cells.
 
         i = transaction_auto(worksheet, bold, i, id, name)
