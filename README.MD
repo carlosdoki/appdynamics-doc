@@ -1,5 +1,4 @@
 ## AppDynamics Document Configuration
-Need Pyhton2
 
 1. `pip install -r requirements.txt` (or just install requests)
 2. `python app-doc.py <host> <port> <user> <password> <account>`
