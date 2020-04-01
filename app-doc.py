@@ -15,12 +15,16 @@ cookies = ''
 
 def get_auth(host, port, user, password, account):
     url = '{}:{}/controller/auth'.format(host, port)
+    data_string = user + "@" + account + ":" + password
+    data_bytes = data_string.encode("utf-8")
+    headerBasic = base64.b64encode(data_bytes).decode('utf-8')
     headers = {
-        'Authorization': 'Basic ' + base64.b64encode(user + "@" + account + ":" + password)  
+        'Authorization': 'Basic ' + headerBasic
     }
     params = (
         ('action', 'login'),
     )
+    
     response = requests.get(url, headers=headers, params=params)
     global token
     global cookies
@@ -63,7 +67,10 @@ def transaction_auto(worksheet, bold, i, id, name):
             for rules in child :
                 name_rule = rules.attrib['rule-description']
                 for rule in rules:
-                    valor = xml.etree.ElementTree.tostring(rule).replace('<tx-match-rule>', '')
+                    # bytes_text = bytes(rule, 'utf-8')
+                    valor = xml.etree.ElementTree.tostring(rule)
+                    valor = valor.decode('utf-8')
+                    valor = valor.replace('<tx-match-rule>', '')
                     valor = valor.replace('</tx-match-rule>', '')
                     valor = json.loads(valor)
                     for discovery in valor['txautodiscoveryrule']['autodiscoveryconfigs']:
@@ -458,7 +465,7 @@ def main():
         process()
 
     else:
-       print 'app-doc.py <http(s)://host> <port> <user> <password> <account>'
+       print('app-doc.py <http(s)://host> <port> <user> <password> <account>')
        sys.exit(2)
 
 if __name__ == '__main__':
