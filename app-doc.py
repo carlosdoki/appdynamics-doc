@@ -276,10 +276,10 @@ def health_rules(worksheet, bold, x, id, name):
             if health_rule.tag == 'warning-execution-criteria':
                 i = y
                 for warning_execution_criteria in health_rule:
-                    if warning_execution_criteria.tag == 'condition-aggregation-type':
-                        if warning_execution_criteria.text == 'CUSTOM':
-                            worksheet.write( i ,6, warning_execution_criteria.text)
-                            custom = 1    
+                    # if warning_execution_criteria.tag == 'condition-aggregation-type':
+                        # if warning_execution_criteria.text == 'CUSTOM':
+                        #     worksheet.write( i ,6, warning_execution_criteria.text)
+                        #     custom = 1    
                     if warning_execution_criteria.tag == 'condition-expression':
                         worksheet.write( i ,12, warning_execution_criteria.text)
                         i += 1
@@ -300,27 +300,30 @@ def health_rules(worksheet, bold, x, id, name):
                                 worksheet.write( i ,15, policy_condition.text)
                             if ('condition' in policy_condition.tag and len(policy_condition.tag) < 11):
                                 for condition1 in policy_condition:
-                                    if custom == 1:
-                                        if ('condition' in condition1.tag and len(condition1.tag) < 11):
-                                            for conditions in condition1:
-                                                if ('condition' in conditions.tag and len(conditions.tag) < 11):
-                                                    for condition in conditions:
-                                                        i = hrConditions(worksheet, i, condition, 5)
-                                                    i += 1
-                                                else:    
-                                                    i = hrConditions(worksheet, i, conditions, 5)
-                                            i += 1
-                                        else:
-                                            i = hrConditions(worksheet, i, condition1, 5)
+                                    # if custom == 1:
+                                    if ('condition' in condition1.tag and len(condition1.tag) < 11):
+                                        for conditions in condition1:
+                                            if ('condition' in conditions.tag and len(conditions.tag) < 11):
+                                                for condition in conditions:
+                                                    i = hrConditions(worksheet, i, condition, 5)
+                                                i += 1
+                                            else:    
+                                                i = hrConditions(worksheet, i, conditions, 5)
+                                        i += 1
                                     else:
                                         i = hrConditions(worksheet, i, condition1, 5)
+                                    # else:
+                                    #     i = hrConditions(worksheet, i, condition1, 5)
+                                i += 1
             if health_rule.tag == 'critical-execution-criteria':
                 y = i 
                 for critical_execution_criteria in health_rule:
-                    if critical_execution_criteria.tag == 'condition-aggregation-type':
-                        if critical_execution_criteria.text == 'CUSTOM':
-                            worksheet.write( i ,6, critical_execution_criteria.text)
-                            custom = 1    
+                    # if critical_execution_criteria.tag == 'condition-aggregation-type':
+                        # if critical_execution_criteria.text == 'CUSTOM':
+                        #     worksheet.write( i ,6, critical_execution_criteria.text)
+                        #     custom = 1
+                        # else:     
+                        #     custom = 1
                     if critical_execution_criteria.tag == 'condition-expression':
                         worksheet.write( i ,7, critical_execution_criteria.text)
                         i += 1
@@ -339,22 +342,27 @@ def health_rules(worksheet, bold, x, id, name):
                                 worksheet.write( i ,7, policy_condition.text)
                             if policy_condition.tag == 'use-active-baseline':
                                 worksheet.write( i ,10, policy_condition.text)
+
                             if ('condition' in policy_condition.tag and len(policy_condition.tag) < 11):
                                 for condition1 in policy_condition:
-                                    if custom == 1:
-                                        if ('condition' in condition1.tag and len(condition1.tag) < 11):
-                                            for conditions in condition1:
-                                                if ('condition' in conditions.tag and len(conditions.tag) < 11):
-                                                    for condition in conditions:
-                                                        i = hrConditions(worksheet, i, condition, 0)
-                                                    i += 1
-                                                else:    
-                                                    i = hrConditions(worksheet, i, conditions, 0)
-                                            i += 1
-                                        else:
-                                            i = hrConditions(worksheet, i, condition1, 0)
+                                    # if custom == 1:
+                                    if ('condition' in condition1.tag and len(condition1.tag) < 11):
+                                        for conditions in condition1:
+                                            if ('condition' in conditions.tag and len(conditions.tag) < 11):
+                                                for condition in conditions:
+                                                    i = hrConditions(worksheet, i, condition, 0)
+                                                i += 1
+                                            else:    
+                                                i = hrConditions(worksheet, i, conditions, 0)
+                                        i += 1
                                     else:
                                         i = hrConditions(worksheet, i, condition1, 0)
+                                
+                                    # else:
+                                    #     print("custom=0")
+                                    #     print(condition1)
+                                    #     i = hrConditions(worksheet, i, condition1, 0)
+                                i += 1                            
     return i
 
 def hrConditions(worksheet, i, conditions, y):
@@ -438,7 +446,6 @@ def process():
         name = application['name']
         print(name)
         # Add a bold format to use to highlight cells.
-
         i = transaction_auto(worksheet, bold, i, id, name)
         i = transaction_custom(worksheet, bold, i, id, name)
         # i = i + 1
