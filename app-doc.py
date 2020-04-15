@@ -291,12 +291,22 @@ def health_rules(worksheet, bold, x, id, name):
                                                 for condition in conditions:
                                                     i = hrConditions(worksheet, i, condition, 5)
                                                 i += 1
+                                                worksheet.write( i ,0, name) 
+                                                worksheet.write( i ,1, health)
+                                                worksheet.write( i ,2, tipo)
                                             else:    
                                                 i = hrConditions(worksheet, i, conditions, 5)
                                         i += 1
+                                        worksheet.write( i ,0, name) 
+                                        worksheet.write( i ,1, health)
+                                        worksheet.write( i ,2, tipo)
                                     else:
                                         i = hrConditions(worksheet, i, condition1, 5)
                                 i += 1
+                                worksheet.write( i ,0, name) 
+                                worksheet.write( i ,1, health)
+                                worksheet.write( i ,2, tipo)
+
             if health_rule.tag == 'critical-execution-criteria':
                 y = i 
                 for critical_execution_criteria in health_rule:
@@ -327,12 +337,22 @@ def health_rules(worksheet, bold, x, id, name):
                                                 for condition in conditions:
                                                     i = hrConditions(worksheet, i, condition, 0)
                                                 i += 1
+                                                worksheet.write( i ,0, name) 
+                                                worksheet.write( i ,1, health)
+                                                worksheet.write( i ,2, tipo)
                                             else:    
                                                 i = hrConditions(worksheet, i, conditions, 0)
                                         i += 1
+                                        worksheet.write( i ,0, name) 
+                                        worksheet.write( i ,1, health)
+                                        worksheet.write( i ,2, tipo)
                                     else:
                                         i = hrConditions(worksheet, i, condition1, 0)
-                                i += 1                            
+                                i += 1
+                                worksheet.write( i ,0, name) 
+                                worksheet.write( i ,1, health)
+                                worksheet.write( i ,2, tipo)
+
     return i
 
 def hrConditions(worksheet, i, conditions, y):
